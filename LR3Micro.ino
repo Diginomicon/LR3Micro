@@ -63,7 +63,7 @@ const int addrDAC = 0x62;
 
 // ### Global Config Variables ###
 // timer minutes for shutdown relay after loss of inRAPPin input
-int delayPowerOff = 2;
+int delayPowerOff = 30;
 // seconds offset for sending shutdown signal before shutdown relay timer expires
 int delayShutdownOffset = 60;
 // Number of loops to debounce input before changing input state
@@ -73,7 +73,7 @@ int longThreshold = 1000;
 // Number of buttons defined in the buttons array
 int numSWCButtons = 0;
 // +/-tolerance for SWC Trigger value
-int SWCTolerance = 5;
+int SWCTolerance = 20;
 
 // Global variables shared across functions
 // Debug controls the serial output stream
@@ -123,17 +123,20 @@ typedef struct SWCButton_t {
 //   SWC voltage / (Vref / 4096) = DAC value (round to int value)
 //  Using sensor shield 5V Vref = 5.014
 //   4.414 / (5.014 / 4096) = 3605.85 = 3606
-// These ADC values were taken using a 18k ohm 1% resistor
+// These ADC values were taken from the IHU
+//  For the A0 input, we use a resistor to create a voltage divider with
+//  the steering wheel resistive ladder, the closest match to the IHU values
+//  for the LR3 is 3.3k Ohms
 const SWCButton_t SWCButtons[] = {
-  {"IDLE", 644, 3632, IDLE, 0, IDLE, 0},
-  {"MODE", 67, 1180, IGNORE, 0, IGNORE, 0},
-  {"VOL+", 207, 2396, IGNORE, 0, IGNORE, 0},
-  {"VOL-", 16, 380, IGNORE, 0, IGNORE, 0},
-  {"NEXT", 147, 1988, USB, 'N', HOLDUSB, 'N'},
-  {"PREV", 101, 1584, USB, 'V', HOLDUSB, 'V'},
-  {"ANS_CALL", 214, 2808, USB, 'P', USB, 'B'},
-  {"END_CALL", 27, 780, USB, 'O', TOGGLEPIN, outREVPin},
-  {"VOICE", 321, 3216, USB, 'M', TOGGLEPIN, outMUTEPin},
+  {"IDLE", 908, 3632, IDLE, 0, IDLE, 0},
+  {"MODE",295, 1180, IGNORE, 0, IGNORE, 0},
+  {"VOL+", 599, 2396, IGNORE, 0, IGNORE, 0},
+  {"VOL-", 95, 380, IGNORE, 0, IGNORE, 0},
+  {"NEXT", 497, 1988, USB, 'N', HOLDUSB, 'N'},
+  {"PREV", 396, 1584, USB, 'V', HOLDUSB, 'V'},
+  {"ANS_CALL", 702, 2808, USB, 'P', USB, 'B'},
+  {"END_CALL", 195, 780, USB, 'O', TOGGLEPIN, outREVPin},
+  {"VOICE", 804, 3216, USB, 'M', TOGGLEPIN, outMUTEPin},
 };
 
 void setup() {
@@ -381,6 +384,10 @@ void monitorRGBState() {
 
     Shares state information via global variable flgRGB
       flgRGB means that the GVIF RGB selected signal is active
+
+    We also toggle control of the SWC network based on the RGZB signal
+    due to we can't read the state of the IHU to tell if the active input
+    is AUX or not, so RGB serves as a crude proxy for that state.
   */
   /**************************************************************************/
   bool valueRGB;
@@ -424,7 +431,8 @@ void sendButton(SWCFunctions action, byte value) {
     Return: none
 
     For the requested action and passes the given value.  If flgDebug is set
-    will not actually perform the action but will print status as if it were.
+    will not actually perform the USB action but will print status. This is
+    to prevent stray characters from being accepted while debugging.
 
     Keyboard actions are only performed when flgRGB is true, GPIO actions are
     always performed.
@@ -449,9 +457,7 @@ void sendButton(SWCFunctions action, byte value) {
     Serial.print(F("Releasing held GPIO pin '"));
     Serial.print(heldValue);
     Serial.println(F("'"));
-    if (!flgDebug) {
-      digitalWrite(heldValue, LOW);
-    }
+    digitalWrite(heldValue, LOW);
     flgPin = false;
     heldValue = 0 ;
   }
@@ -497,22 +503,18 @@ void sendButton(SWCFunctions action, byte value) {
       Serial.println(F("'"));
       heldValue = value;
       flgPin = true;
-      if (!flgDebug) {
-        digitalWrite(value, HIGH);
-      }
+      digitalWrite(value, HIGH);
       break;
     case TOGGLEPIN:
       // Note this does not set the global flags of the pin to avoid
-      //  triggering the state change logic for externally triggered
+      //  subverting the state change logic for externally triggered
       //  states - the external triggers should still work correctly
       Serial.print(F("Toggling GPIO Pin '"));
       Serial.print(value);
       Serial.println(F("'"));
-      if (!flgDebug) {
-        // This may only work like this on AVR based arduinos, other boards
-        //  may require a more complex method to toggle the pin state
-        digitalWrite(value, !digitalRead(value));
-      }
+      // This may only work like this on AVR based arduinos, other boards
+      //  may require a more complex method to toggle the pin state
+      digitalWrite(value, !digitalRead(value));
       break;
   }
 }
@@ -718,7 +720,7 @@ void setSWCOutState() {
     If flgRGB is not active, the activeSWC is also passed through.
 
     If flgRGB is active, the idle state is sent instead so that the SWC interupts
-    are only processed by the attached system instead.
+    are only processed by the openauto system instead.
   */
   /**************************************************************************/
   uint32_t dacOutput;
@@ -729,7 +731,7 @@ void setSWCOutState() {
     dacOutput = SWCButtons[activeSWC].dac;
   } else {
     // Default to IDLE state
-    dacOutput = SWCButtons[0].dac;
+    dacOutput = SWCButtons[IDLE].dac;
   }
   dac.setVoltage(dacOutput, false);
   if (flgDebug && loopStartTime % 1000 == 0) {
