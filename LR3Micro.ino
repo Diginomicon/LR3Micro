@@ -2,7 +2,7 @@
 /*
     @file     LR3Micro.ino
     @author   Sean Settle
-    @license  Creative Commons Attribution ShareAlike (CC BY-SA)
+    @license  GPL V3 (See LICENSE.md)
 
     Manange the vehicle signals from a Land Rover LR3 and convert them
     to appropriate triggers or keyboard presses for OpenAuto Pro.
