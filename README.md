@@ -16,9 +16,10 @@ Works with a 4 input optocoupler to safely isolate 12V signals from the car to 3
 
 # Fuse Taps
 A fuse tap of the following fuses are used to provide power and signals to the Arduino.
-53P = Battery Power
-58P = CJB Entertainment Relay (Retained Accessory Power)
-5P  = Only powered when reverse gear selected
+
+53P = Battery Power  
+58P = CJB Entertainment Relay (Retained Accessory Power)  
+5P  = Only powered when reverse gear selected  
 
 # Delayed Relay
 In order to prevent unecessary battery drain when everything should be off, the Arduino controls a relay
