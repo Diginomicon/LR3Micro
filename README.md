@@ -48,6 +48,7 @@ time the IHU triggers the CJB RAP.
 * 5V DC-DC Buck Step Down Modules (https://smile.amazon.com/gp/product/B01HXU1C6U)
 * 12V Automotive Relays (https://smile.amazon.com/gp/product/B01KVZ2MU4)
 * 12V DC-DC Power Supply (https://smile.amazon.com/gp/product/B01DXEU4KA)
+* MCP4725 DAC to emulate SWC signal
 * GVIF to inject RGBS into the Navigation Signal
 * HDMI to VGA adapter
 * Homemade VGA to RGBS Sync Combiner based off of https://www.electro-tech-online.com/threads/how-to-use-sync-on-green-from-computer-to-rgb-monitor.86318/ but https://www.epanorama.net/circuits/vga2rgbs.html would be more stable but I wanted all the bits to fit into a D-Shell
