@@ -385,7 +385,7 @@ void monitorRGBState() {
     Shares state information via global variable flgRGB
       flgRGB means that the GVIF RGB selected signal is active
 
-    We also toggle control of the SWC network based on the RGZB signal
+    We also toggle control of the SWC network based on the RGBS signal
     due to we can't read the state of the IHU to tell if the active input
     is AUX or not, so RGB serves as a crude proxy for that state.
   */
