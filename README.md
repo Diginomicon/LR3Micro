@@ -1,7 +1,7 @@
 # LR3Micro
 Manange the vehicle signals from a Land Rover LR3 and convert them to appropriate triggers or keyboard presses for OpenAuto Pro.  Implemented on an Arduino Micro.
 
-Part of an OpenAuto implemtation to inject bluetooth and Android Auto into the OEM navigation screen, while retaining all OEM functionality.
+Part of an OpenAuto implementation to inject bluetooth and Android Auto into the OEM navigation screen, while retaining all OEM functionality.
 
 # Features
 Provides power management by acting a delayed relay.
